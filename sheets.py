@@ -12,7 +12,6 @@ def get_or_create_user_sheet(email):
     service = get_sheets_service()
     spreadsheet_title = f"My Wealth Manager - {email}"
 
-    # Check if user already has a sheet
     drive_service = googleapiclient.discovery.build("drive", "v3", credentials=service._http.credentials)
     query = f"name='{spreadsheet_title}' and mimeType='application/vnd.google-apps.spreadsheet'"
     response = drive_service.files().list(q=query).execute()
@@ -24,7 +23,11 @@ def get_or_create_user_sheet(email):
     # Create a new sheet if not found
     spreadsheet = {"properties": {"title": spreadsheet_title}}
     sheet = service.spreadsheets().create(body=spreadsheet).execute()
-    return sheet["spreadsheetId"]
+    sheet_id = sheet["spreadsheetId"]
+    #create the Transactions sheet.
+    create_trans_sheet = {"requests": [{"addSheet": {"properties": {"title": "Transactions"}}}]}
+    service.spreadsheets().batchUpdate(spreadsheetId=sheet_id, body=create_trans_sheet).execute()
+    return sheet_id
 
 def add_transaction(sheet_id, data):
     """Append transaction data to user's Google Sheet."""
@@ -39,5 +42,9 @@ def add_transaction(sheet_id, data):
 def get_transactions(sheet_id):
     """Fetch transactions from the user's Google Sheet."""
     service = get_sheets_service()
-    result = service.spreadsheets().values().get(spreadsheetId=sheet_id, range="Transactions!A:D").execute()
-    return result.get("values", [])
+    try:
+        result = service.spreadsheets().values().get(spreadsheetId=sheet_id, range="Transactions!A:D").execute()
+        return result.get("values", [])
+    except Exception as e:
+        print(f"Error getting transactions: {e}")
+        return [] #return empty list on error.

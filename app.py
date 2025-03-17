@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from auth import login_required, get_google_auth_url, get_google_user
 from sheets import get_or_create_user_sheet, add_transaction, get_transactions
+from config import Config #import config class.
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Change this to a secure key
+app.config.from_object(Config) #use config class.
 
 @app.route("/")
 @login_required
@@ -34,17 +35,21 @@ def auth_callback():
 @app.route("/transactions", methods=["GET", "POST"])
 @login_required
 def transactions():
+    """Handle displaying and adding transactions."""
     email = session["email"]
     sheet_id = get_or_create_user_sheet(email)
 
     if request.method == "POST":
-        data = request.json
-        add_transaction(sheet_id, data)
-        return jsonify({"message": "Transaction added successfully!"})
+        try:
+            data = request.json
+            add_transaction(sheet_id, data)
+            return jsonify({"message": "Transaction added successfully!"})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500 #return error.
 
+    # GET method: Retrieve transactions from the sheet
     transactions = get_transactions(sheet_id)
-    return jsonify(transactions)
-
+    return render_template("transactions.html", transactions=transactions, user=session["name"])
 
 if __name__ == "__main__":
     app.run(debug=True)

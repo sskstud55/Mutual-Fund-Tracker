@@ -2,8 +2,9 @@ from flask import redirect, session, request, url_for
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
+import os #import os
 
-CLIENT_SECRETS_FILE = "client_secret.json"  # Each user must provide their own Google OAuth credentials
+CLIENT_SECRETS_FILE = "client_secret.json"
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/userinfo.email", "openid"]
 REDIRECT_URI = "http://localhost:5000/auth/callback"
 
@@ -14,18 +15,20 @@ def get_google_auth_url():
     return auth_url
 
 def get_google_user():
-    """Retrieve user details after Google login."""
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
-    flow.redirect_uri = REDIRECT_URI
-    flow.fetch_token(authorization_response=request.url)
+    try:
+        flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
+        flow.redirect_uri = REDIRECT_URI
+        flow.fetch_token(authorization_response=request.url)
 
-    credentials = flow.credentials
-    user_info_service = googleapiclient.discovery.build("oauth2", "v2", credentials=credentials)
-    user_info = user_info_service.userinfo().get().execute()
+        credentials = flow.credentials
+        user_info_service = googleapiclient.discovery.build("oauth2", "v2", credentials=credentials)
+        user_info = user_info_service.userinfo().get().execute()
 
-    session["email"] = user_info["email"]
-    session["name"] = user_info["name"]
-    session["credentials"] = credentials_to_dict(credentials)
+        session["email"] = user_info["email"]
+        session["name"] = user_info["name"]
+        session["credentials"] = credentials_to_dict(credentials)
+    except Exception as e:
+        print(f"Error getting google user: {e}")
 
 def credentials_to_dict(credentials):
     return {"token": credentials.token, "refresh_token": credentials.refresh_token,

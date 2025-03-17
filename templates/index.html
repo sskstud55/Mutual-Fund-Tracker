@@ -1,43 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Wealth Manager</title>
 </head>
 <body>
-    <h2>Welcome, {{ user }}</h2>
-    <a href="{{ url_for('logout') }}">Logout</a>
-
-    <h3>Transactions</h3>
-    <table>
-        <tr><th>Date</th><th>Fund Name</th><th>Amount</th><th>Units</th></tr>
-        {% for t in transactions %}
+    <h1>Welcome, {{ user }}!</h1>
+    <h2>Your Transactions</h2>
+    <table border="1">
         <tr>
-            <td>{{ t[0] }}</td>
-            <td>{{ t[1] }}</td>
-            <td>{{ t[2] }}</td>
-            <td>{{ t[3] }}</td>
+            <th>Date</th>
+            <th>Fund Name</th>
+            <th>Amount</th>
+            <th>Units</th>
+        </tr>
+        {% for transaction in transactions %}
+        <tr>
+            <td>{{ transaction[0] }}</td>
+            <td>{{ transaction[1] }}</td>
+            <td>{{ transaction[2] }}</td>
+            <td>{{ transaction[3] }}</td>
         </tr>
         {% endfor %}
     </table>
-
-    <h3>Add Transaction</h3>
-    <form id="addTransactionForm">
-        <input type="date" name="date" required>
-        <input type="text" name="fund_name" placeholder="Fund Name" required>
-        <input type="number" name="amount" placeholder="Amount" required>
-        <input type="number" name="units" placeholder="Units" required>
-        <button type="submit">Add</button>
-    </form>
-
-    <script>
-        document.getElementById("addTransactionForm").onsubmit = function(event) {
-            event.preventDefault();
-            fetch("/transactions", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(Object.fromEntries(new FormData(event.target)))
-            }).then(() => location.reload());
-        };
-    </script>
+    <br>
+    <a href="{{ url_for('logout') }}">Logout</a>
 </body>
 </html>
