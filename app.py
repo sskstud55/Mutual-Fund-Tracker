@@ -48,8 +48,8 @@ def transactions():
             return jsonify({"error": str(e)}), 500 #return error.
 
     # GET method: Retrieve transactions from the sheet
-    transactions = get_transactions(sheet_id)
-    return render_template("transactions.html", transactions=transactions, user=session["name"])
+    transactions1 = get_transactions(sheet_id)
+    return render_template("transactions.html", transactions=transactions1, user=session["name"])
 
 if __name__ == "__main__":
     app.run(debug=True)
